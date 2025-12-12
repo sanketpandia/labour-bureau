@@ -16,6 +16,9 @@ services:
     command: ["sh","-c","sleep 10 && air -c air.toml"]
     #command: ["air", "-c", "air.toml", "-d"]
     stdin_open: true
+    labels:
+      service: "politburo"
+      env: "dev"
     depends_on:
       - db
       - redis
@@ -66,6 +69,9 @@ services:
     stdin_open: true
     env_file:
       - ../comrade-bot/.env
+    labels:
+      service: "comrade-bot"
+      env: "dev"
 
 
   vizburo:
@@ -106,6 +112,23 @@ services:
     command: -config.file=/etc/loki/local-config.yml
     depends_on:
       - politburo
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: always
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log:/var/log:ro
+    ports:
+      - "9080:9080"
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - default
 
   grafana:
     image: grafana/grafana:latest
