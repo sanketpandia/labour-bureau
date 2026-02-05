@@ -1,27 +1,28 @@
 services:
-  politburo:
-    build:
-      context: ../politburo
-      dockerfile: Dockerfile.dev
-      target: dev
-    working_dir: /app      # <--- root, not /app/cmd/server
-    container_name: politburo
-    volumes:
-      - ../politburo:/app
-      - politburo_air_tmp:/app/.air_tmp
-    ports:
-      - "8080:8080"
-    env_file:
-      - ../politburo/.env
-    command: ["sh","-c","sleep 10 && air -c air.toml"]
-    #command: ["air", "-c", "air.toml", "-d"]
-    stdin_open: true
-    labels:
-      service: "politburo"
-      env: "dev"
-    depends_on:
-      - db
-      - redis
+  # politburo now runs directly via tmux (see start-dev.sh)
+  # politburo:
+  #   build:
+  #     context: ../politburo
+  #     dockerfile: Dockerfile.dev
+  #     target: dev
+  #   working_dir: /app      # <--- root, not /app/cmd/server
+  #   container_name: politburo
+  #   volumes:
+  #     - ../politburo:/app
+  #     - politburo_air_tmp:/app/.air_tmp
+  #   ports:
+  #     - "8080:8080"
+  #   env_file:
+  #     - ../politburo/.env
+  #   command: ["sh","-c","sleep 10 && air -c air.toml"]
+  #   #command: ["air", "-c", "air.toml", "-d"]
+  #   stdin_open: true
+  #   labels:
+  #     service: "politburo"
+  #     env: "dev"
+  #   depends_on:
+  #     - db
+  #     - redis
 
   db:
     image: postgres:15
@@ -63,6 +64,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: comrade-bot
     working_dir: /app
+    network_mode: "host"
     volumes:
       - ../comrade-bot:/app
     command: ["ts-node-dev", "--respawn", "--transpile-only", "src/index.ts"]
@@ -97,8 +99,6 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=7d'
-    depends_on:
-      - politburo
 
   loki:
     image: grafana/loki:latest
@@ -110,8 +110,6 @@ services:
       - ./loki.dev.yml:/etc/loki/local-config.yml:ro
       - loki-storage:/loki
     command: -config.file=/etc/loki/local-config.yml
-    depends_on:
-      - politburo
 
   promtail:
     image: grafana/promtail:latest
