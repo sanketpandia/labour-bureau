@@ -2,16 +2,13 @@ version: "3.9"
 services:
   politburo:
     build:
-      context: ../politburo
-      dockerfile: Dockerfile         # politburo Dockerfile
+      context: ../../politburo
+      dockerfile: Dockerfile
     # No public port exposure - only accessible via internal network
     env_file:
       - ./env/politburo.env
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    # depends_on removed — podman-compose 1.0.6 translates these to --requires
+    # which causes cascading dependency failures. Services retry via restart policy.
     networks:
       - internal
     restart: unless-stopped
@@ -22,18 +19,14 @@ services:
       retries: 3
 
   db:
-    image: postgres:15
+    image: docker.io/library/postgres:15
     env_file:
       - ./env/database.env
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata-prod:/var/lib/postgresql/data
-      - ../politburo/internal/db/migrations:/migrations
+      - ../../politburo/infra/db/migrations:/migrations
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ieuser -d infinite"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -43,7 +36,7 @@ services:
     # No public port exposure - only accessible via internal network
 
   redis:
-    image: redis:7-alpine
+    image: docker.io/library/redis:7-alpine
     container_name: redis-prod
     restart: unless-stopped
     env_file:
@@ -62,7 +55,7 @@ services:
 
   comrade-bot:
     build:
-      context: ../comrade-bot      # adjust path to your Node bot repo
+      context: ../../comrade-bot
       dockerfile: Dockerfile
     env_file:
       - ./env/comrade-bot.env
@@ -71,7 +64,7 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:latest
+    image: docker.io/prom/prometheus:latest
     container_name: prometheus
     restart: unless-stopped
     ports:
@@ -85,11 +78,9 @@ services:
       - '--storage.tsdb.retention.time=30d'
     networks:
       - internal
-    depends_on:
-      - politburo
 
   loki:
-    image: grafana/loki:latest
+    image: docker.io/grafana/loki:latest
     container_name: loki
     restart: unless-stopped
     ports:
@@ -100,11 +91,9 @@ services:
     command: -config.file=/etc/loki/local-config.yml
     networks:
       - internal
-    depends_on:
-      - politburo
 
   promtail:
-    image: grafana/promtail:latest
+    image: docker.io/grafana/promtail:latest
     container_name: promtail
     restart: unless-stopped
     volumes:
@@ -117,11 +106,9 @@ services:
     command: -config.file=/etc/promtail/config.yml
     networks:
       - internal
-    depends_on:
-      - loki
 
   grafana:
-    image: grafana/grafana:latest
+    image: docker.io/grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
     ports:
@@ -145,12 +132,9 @@ services:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
     networks:
       - internal
-    depends_on:
-      - prometheus
-      - loki
 
   caddy:
-    image: caddy:latest
+    image: docker.io/library/caddy:latest
     container_name: caddy
     restart: unless-stopped
     ports:
@@ -164,9 +148,6 @@ services:
       - caddy_config:/config
     networks:
       - internal
-    depends_on:
-      - politburo
-      - grafana
 
 volumes:
   pgdata-prod:
@@ -180,5 +161,3 @@ volumes:
 networks:
   internal:
     driver: bridge
-
-
