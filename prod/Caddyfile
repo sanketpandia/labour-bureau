@@ -6,8 +6,6 @@
     level INFO
   }
   
-  # Enable metrics endpoint for Prometheus (internal only)
-  metrics localhost:2019/metrics
 }
 
 comradebot.cc {
