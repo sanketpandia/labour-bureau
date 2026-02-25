@@ -29,6 +29,7 @@ function show_help {
   echo "Commands:"
   echo "  gen-api-key                     Generate API key"
   echo "  reset-db <sql_path>            Drop & run migrations from given path"
+  echo "  reset-db-schema                Drop database & apply schema.sql"
   echo "  migration <sql_path>           Run migrations from given path"
   echo "  deploy-commands                Deploy Discord bot commands"
   echo "  down <service|all>             Stop container(s)"
@@ -62,7 +63,19 @@ function reset_db {
 
   echo "💣 Dropping and migrating DB..."
   docker compose -f "$DOCKER_COMPOSE_FILE" exec -T "$DB_CONTAINER_NAME" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
-  
+
+}
+
+function reset_db_schema {
+  echo "💣 Dropping and resetting DB with schema.sql..."
+
+  # Drop and recreate the public schema
+  docker compose -f "$DOCKER_COMPOSE_FILE" exec -T "$DB_CONTAINER_NAME" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+  # Apply the schema.sql file
+  docker compose -f "$DOCKER_COMPOSE_FILE" exec -T "$DB_CONTAINER_NAME" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /migrations/000_schema.sql
+
+  echo "✅ Database reset and schema applied successfully"
 }
 
 function migrate {
@@ -130,6 +143,9 @@ case "$1" in
     ;;
   reset-db)
     reset_db "$2"
+    ;;
+  reset-db-schema)
+    reset_db_schema
     ;;
   deploy-commands)
     deploy_commands

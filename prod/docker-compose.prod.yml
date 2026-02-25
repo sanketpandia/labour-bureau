@@ -1,0 +1,184 @@
+version: "3.9"
+services:
+  politburo:
+    build:
+      context: ../politburo
+      dockerfile: Dockerfile         # politburo Dockerfile
+    # No public port exposure - only accessible via internal network
+    env_file:
+      - ./env/politburo.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:8080/healthCheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  db:
+    image: postgres:15
+    env_file:
+      - ./env/database.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata-prod:/var/lib/postgresql/data
+      - ../politburo/internal/db/migrations:/migrations
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+    restart: unless-stopped
+    # No public port exposure - only accessible via internal network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-prod
+    restart: unless-stopped
+    env_file:
+      - ./env/cache.env
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-prod:/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "-a", "${REDIS_PASSWORD}", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    # No public port exposure - only accessible via internal network
+
+  comrade-bot:
+    build:
+      context: ../comrade-bot      # adjust path to your Node bot repo
+      dockerfile: Dockerfile
+    env_file:
+      - ./env/comrade-bot.env
+    networks:
+      - internal
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.prod.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-storage:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - internal
+    depends_on:
+      - politburo
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki.prod.yml:/etc/loki/local-config.yml:ro
+      - loki-storage:/loki
+    command: -config.file=/etc/loki/local-config.yml
+    networks:
+      - internal
+    depends_on:
+      - politburo
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log:/var/log:ro
+    ports:
+      - "9080:9080"
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - internal
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./env/monitoring.env
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_SECURITY_ADMIN_USER: admin
+      GF_INSTALL_PLUGINS: grafana-worldmap-panel
+      GF_SERVER_ROOT_URL: https://monitor.comradebot.cc
+      GF_SERVER_DOMAIN: monitor.comradebot.cc
+      GF_SECURITY_COOKIE_SECURE: "true"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_LOG_LEVEL: warn
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    networks:
+      - internal
+    depends_on:
+      - prometheus
+      - loki
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    expose:
+      - "2019"  # Expose metrics port on internal network only
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - internal
+    depends_on:
+      - politburo
+      - grafana
+
+volumes:
+  pgdata-prod:
+  redis-prod:
+  prometheus-storage:
+  loki-storage:
+  grafana-storage:
+  caddy_data:
+  caddy_config:
+
+networks:
+  internal:
+    driver: bridge
+
+
