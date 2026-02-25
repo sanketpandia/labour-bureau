@@ -95,6 +95,8 @@ services:
     volumes:
       - ./prometheus.dev.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-storage:/prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
