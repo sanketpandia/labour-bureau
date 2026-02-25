@@ -1,3 +1,9 @@
 .env
 .env.prod
 infinite-apis.txt
+
+prod/env/cache.env
+prod/env/comrade-bot.env
+prod/env/database.env
+prod/env/monitoring.env
+prod/env/politburo.env
