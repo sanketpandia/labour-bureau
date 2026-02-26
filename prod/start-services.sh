@@ -40,18 +40,20 @@ container_running() {
 
 # Start PostgreSQL
 echo -e "\n${GREEN}🗄️  Starting PostgreSQL...${NC}"
-if container_exists "labour-bureau_db_1"; then
-    if ! container_running "labour-bureau_db_1"; then
+DB_CONTAINER_NAME="db"
+if container_exists "$DB_CONTAINER_NAME"; then
+    if ! container_running "$DB_CONTAINER_NAME"; then
         echo "  Starting existing container..."
-        podman start labour-bureau_db_1
+        podman start "$DB_CONTAINER_NAME"
     else
         echo "  Already running"
     fi
 else
     echo "  Creating new container..."
     podman run -d \
-        --name labour-bureau_db_1 \
+        --name "$DB_CONTAINER_NAME" \
         --network "$NETWORK_NAME" \
+        --network-alias "$DB_CONTAINER_NAME" \
         --env-file "${ENV_DIR}/database.env" \
         -v labour-bureau_pgdata-prod:/var/lib/postgresql/data \
         -v "${SCRIPT_DIR}/../../politburo/infra/db/migrations:/migrations" \
@@ -67,7 +69,7 @@ fi
 echo "  Waiting for database to be ready..."
 sleep 5
 for i in {1..30}; do
-    if podman exec labour-bureau_db_1 pg_isready -U ieuser -d infinite >/dev/null 2>&1; then
+    if podman exec "$DB_CONTAINER_NAME" pg_isready -U ieuser -d infinite >/dev/null 2>&1; then
         echo -e "  ${GREEN}✓ Database is ready${NC}"
         break
     fi
@@ -88,18 +90,20 @@ else
     exit 1
 fi
 
-if container_exists "redis-prod"; then
-    if ! container_running "redis-prod"; then
+REDIS_CONTAINER_NAME="redis"
+if container_exists "$REDIS_CONTAINER_NAME"; then
+    if ! container_running "$REDIS_CONTAINER_NAME"; then
         echo "  Starting existing container..."
-        podman start redis-prod
+        podman start "$REDIS_CONTAINER_NAME"
     else
         echo "  Already running"
     fi
 else
     echo "  Creating new container..."
     podman run -d \
-        --name redis-prod \
+        --name "$REDIS_CONTAINER_NAME" \
         --network "$NETWORK_NAME" \
+        --network-alias "$REDIS_CONTAINER_NAME" \
         --env-file "${ENV_DIR}/cache.env" \
         -v labour-bureau_redis-prod:/data \
         --restart unless-stopped \
