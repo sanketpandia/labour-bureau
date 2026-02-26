@@ -80,6 +80,28 @@ for i in {1..30}; do
     sleep 1
 done
 
+# Run migrations if database is empty
+echo "  Checking if migrations need to be run..."
+MIGRATION_FILE="${SCRIPT_DIR}/../../politburo/infra/db/migrations/000_complete_schema.sql"
+if [ -f "$MIGRATION_FILE" ]; then
+    # Check if tables exist (quick check for any table)
+    TABLE_COUNT=$(podman exec "$DB_CONTAINER_NAME" psql -U ieuser -d infinite -tAc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
+    
+    if [ "$TABLE_COUNT" = "0" ] || [ -z "$TABLE_COUNT" ]; then
+        echo "  Running database migrations..."
+        podman exec -i "$DB_CONTAINER_NAME" psql -U ieuser -d infinite < "$MIGRATION_FILE"
+        if [ $? -eq 0 ]; then
+            echo -e "  ${GREEN}✓ Migrations completed${NC}"
+        else
+            echo -e "  ${YELLOW}⚠ Migration had errors (database may already be initialized)${NC}"
+        fi
+    else
+        echo -e "  ${GREEN}✓ Database already has tables (${TABLE_COUNT} tables found), skipping migrations${NC}"
+    fi
+else
+    echo -e "  ${YELLOW}⚠ Migration file not found: $MIGRATION_FILE${NC}"
+fi
+
 # Start Redis
 echo -e "\n${GREEN}🔴 Starting Redis...${NC}"
 # Get Redis password from env file
@@ -117,10 +139,10 @@ fi
 
 # Start Politburo
 echo -e "\n${GREEN}🏛️  Starting Politburo...${NC}"
-if container_exists "labour-bureau_politburo_1"; then
-    if ! container_running "labour-bureau_politburo_1"; then
+if container_exists "politburo"; then
+    if ! container_running "politburo"; then
         echo "  Starting existing container..."
-        podman start labour-bureau_politburo_1
+        podman start politburo
     else
         echo "  Already running"
     fi
@@ -130,8 +152,9 @@ else
     podman build -t labour-bureau_politburo:latest -f "${SCRIPT_DIR}/../../politburo/Dockerfile" "${SCRIPT_DIR}/../../politburo"
     
     podman run -d \
-        --name labour-bureau_politburo_1 \
+        --name politburo \
         --network "$NETWORK_NAME" \
+        --network-alias politburo \
         --env-file "${ENV_DIR}/politburo.env" \
         -p 127.0.0.1:8080:8080 \
         --restart unless-stopped \
