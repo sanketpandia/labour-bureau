@@ -124,6 +124,8 @@ monitor.comradebot.cc {
     header_up X-Real-IP {http.request.remote.host}
     header_up X-Forwarded-For {http.request.remote.host}
     header_up X-Forwarded-Proto {http.request.scheme}
+    header_up Origin {http.request.header.Origin}
+    header_up Referer {http.request.header.Referer}
     # WebSocket support for Grafana live features
     header_up Connection *
     header_up Upgrade websocket
