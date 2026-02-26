@@ -155,6 +155,7 @@ else
     # Get DISCORD_BOT_TOKEN from env file (or BOT_TOKEN as fallback)
     if [ -f "${ENV_DIR}/comrade-bot.env" ]; then
         DISCORD_BOT_TOKEN=$(grep "^DISCORD_BOT_TOKEN=" "${ENV_DIR}/comrade-bot.env" | sed 's/^DISCORD_BOT_TOKEN=//' | tr -d '"')
+        DISCORD_BOT_CLIENT_ID=$(grep "^DISCORD_BOT_CLIENT_ID=" "${ENV_DIR}/comrade-bot.env" | sed 's/^DISCORD_BOT_TOKEN=//' | tr -d '"')
         # Fallback to BOT_TOKEN if DISCORD_BOT_TOKEN not found
         if [ -z "$DISCORD_BOT_TOKEN" ]; then
             DISCORD_BOT_TOKEN=$(grep "^BOT_TOKEN=" "${ENV_DIR}/comrade-bot.env" | sed 's/^BOT_TOKEN=//' | tr -d '"')
@@ -173,6 +174,7 @@ else
         --network "$NETWORK_NAME" \
         --env-file "${ENV_DIR}/comrade-bot.env" \
         -e DISCORD_BOT_TOKEN="${DISCORD_BOT_TOKEN}" \
+        -e DISCORD_BOT_CLIENT_ID="${DISCORD_BOT_CLIENT_ID}" \
         --restart unless-stopped \
         labour-bureau_comrade-bot:latest
 fi
