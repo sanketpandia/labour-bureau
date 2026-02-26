@@ -152,10 +152,27 @@ else
     # Build image first
     podman build -t labour-bureau_comrade-bot:latest -f "${SCRIPT_DIR}/../../comrade-bot/Dockerfile" "${SCRIPT_DIR}/../../comrade-bot"
     
+    # Get DISCORD_BOT_TOKEN from env file (or BOT_TOKEN as fallback)
+    if [ -f "${ENV_DIR}/comrade-bot.env" ]; then
+        DISCORD_BOT_TOKEN=$(grep "^DISCORD_BOT_TOKEN=" "${ENV_DIR}/comrade-bot.env" | sed 's/^DISCORD_BOT_TOKEN=//' | tr -d '"')
+        # Fallback to BOT_TOKEN if DISCORD_BOT_TOKEN not found
+        if [ -z "$DISCORD_BOT_TOKEN" ]; then
+            DISCORD_BOT_TOKEN=$(grep "^BOT_TOKEN=" "${ENV_DIR}/comrade-bot.env" | sed 's/^BOT_TOKEN=//' | tr -d '"')
+        fi
+        if [ -z "$DISCORD_BOT_TOKEN" ]; then
+            echo -e "  ${RED}✗ Error: DISCORD_BOT_TOKEN or BOT_TOKEN not found in comrade-bot.env${NC}"
+            exit 1
+        fi
+    else
+        echo -e "  ${RED}✗ Error: comrade-bot.env not found${NC}"
+        exit 1
+    fi
+    
     podman run -d \
         --name labour-bureau_comrade-bot_1 \
         --network "$NETWORK_NAME" \
         --env-file "${ENV_DIR}/comrade-bot.env" \
+        -e DISCORD_BOT_TOKEN="${DISCORD_BOT_TOKEN}" \
         --restart unless-stopped \
         labour-bureau_comrade-bot:latest
 fi
