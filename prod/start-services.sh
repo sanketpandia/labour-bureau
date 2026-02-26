@@ -139,22 +139,23 @@ fi
 
 # Start Politburo
 echo -e "\n${GREEN}🏛️  Starting Politburo...${NC}"
-if container_exists "politburo"; then
-    if ! container_running "politburo"; then
+POLITBURO_CONTAINER_NAME="politburo"
+if container_exists "$POLITBURO_CONTAINER_NAME"; then
+    if ! container_running "$POLITBURO_CONTAINER_NAME"; then
         echo "  Starting existing container..."
-        podman start politburo
+        podman start "$POLITBURO_CONTAINER_NAME"
     else
         echo "  Already running"
     fi
 else
     echo "  Building and creating new container..."
     # Build image first
-    podman build -t labour-bureau_politburo:latest -f "${SCRIPT_DIR}/../../politburo/Dockerfile" "${SCRIPT_DIR}/../../politburo"
+    podman build -t politburo:latest -f "${SCRIPT_DIR}/../../politburo/Dockerfile" "${SCRIPT_DIR}/../../politburo"
     
     podman run -d \
-        --name politburo \
+        --name "$POLITBURO_CONTAINER_NAME" \
         --network "$NETWORK_NAME" \
-        --network-alias politburo \
+        --network-alias "$POLITBURO_CONTAINER_NAME" \
         --env-file "${ENV_DIR}/politburo.env" \
         -p 127.0.0.1:8080:8080 \
         --restart unless-stopped \
@@ -162,27 +163,27 @@ else
         --health-interval 30s \
         --health-timeout 5s \
         --health-retries 3 \
-        labour-bureau_politburo:latest
+        politburo:latest
 fi
 
 # Start Comrade Bot
 echo -e "\n${GREEN}🤖 Starting Comrade Bot...${NC}"
-if container_exists "labour-bureau_comrade-bot_1"; then
-    if ! container_running "labour-bureau_comrade-bot_1"; then
+COMRADE_BOT_CONTAINER_NAME="comrade-bot"
+if container_exists "$COMRADE_BOT_CONTAINER_NAME"; then
+    if ! container_running "$COMRADE_BOT_CONTAINER_NAME"; then
         echo "  Starting existing container..."
-        podman start labour-bureau_comrade-bot_1
+        podman start "$COMRADE_BOT_CONTAINER_NAME"
     else
         echo "  Already running"
     fi
 else
     echo "  Building and creating new container..."
     # Build image first
-    podman build -t labour-bureau_comrade-bot:latest -f "${SCRIPT_DIR}/../../comrade-bot/Dockerfile" "${SCRIPT_DIR}/../../comrade-bot"
+    podman build -t comrade-bot:latest -f "${SCRIPT_DIR}/../../comrade-bot/Dockerfile" "${SCRIPT_DIR}/../../comrade-bot"
     
     # Get DISCORD_BOT_TOKEN from env file (or BOT_TOKEN as fallback)
     if [ -f "${ENV_DIR}/comrade-bot.env" ]; then
         DISCORD_BOT_TOKEN=$(grep "^DISCORD_BOT_TOKEN=" "${ENV_DIR}/comrade-bot.env" | sed 's/^DISCORD_BOT_TOKEN=//' | tr -d '"')
-        DISCORD_BOT_CLIENT_ID=$(grep "^DISCORD_BOT_CLIENT_ID=" "${ENV_DIR}/comrade-bot.env" | sed 's/^DISCORD_BOT_TOKEN=//' | tr -d '"')
         # Fallback to BOT_TOKEN if DISCORD_BOT_TOKEN not found
         if [ -z "$DISCORD_BOT_TOKEN" ]; then
             DISCORD_BOT_TOKEN=$(grep "^BOT_TOKEN=" "${ENV_DIR}/comrade-bot.env" | sed 's/^BOT_TOKEN=//' | tr -d '"')
@@ -197,13 +198,12 @@ else
     fi
     
     podman run -d \
-        --name labour-bureau_comrade-bot_1 \
+        --name "$COMRADE_BOT_CONTAINER_NAME" \
         --network "$NETWORK_NAME" \
         --env-file "${ENV_DIR}/comrade-bot.env" \
         -e DISCORD_BOT_TOKEN="${DISCORD_BOT_TOKEN}" \
-        -e DISCORD_BOT_CLIENT_ID="${DISCORD_BOT_CLIENT_ID}" \
         --restart unless-stopped \
-        labour-bureau_comrade-bot:latest
+        comrade-bot:latest
 fi
 
 # Start Prometheus
@@ -318,4 +318,4 @@ fi
 echo -e "\n${GREEN}✅ All services started!${NC}"
 echo ""
 echo "📊 Service Status:"
-podman ps --filter "name=labour-bureau\|redis-prod\|prometheus\|loki\|promtail\|grafana" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+podman ps --filter "name=db\|redis\|politburo\|comrade-bot\|prometheus\|loki\|promtail\|grafana" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
