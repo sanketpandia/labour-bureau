@@ -57,6 +57,7 @@ else
         --env-file "${ENV_DIR}/database.env" \
         -v labour-bureau_pgdata-prod:/var/lib/postgresql/data \
         -v "${SCRIPT_DIR}/../../politburo/infra/db/migrations:/migrations" \
+        -p 127.0.0.1:5432:5432 \
         --restart unless-stopped \
         --health-cmd "pg_isready -U ieuser -d infinite" \
         --health-interval 30s \
