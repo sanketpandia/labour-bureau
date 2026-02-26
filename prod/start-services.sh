@@ -217,13 +217,12 @@ if container_exists "promtail"; then
     fi
 else
     echo "  Creating new container..."
+    # For Podman, we use file-based logging instead of Docker socket
     podman run -d \
         --name promtail \
         --network "$NETWORK_NAME" \
         -p 9080:9080 \
         -v "${SCRIPT_DIR}/promtail-config.yml:/etc/promtail/config.yml:ro" \
-        -v /var/lib/docker/containers:/var/lib/docker/containers:ro \
-        -v /var/run/docker.sock:/var/run/docker.sock \
         -v /var/log:/var/log:ro \
         --restart unless-stopped \
         docker.io/grafana/promtail:latest \
