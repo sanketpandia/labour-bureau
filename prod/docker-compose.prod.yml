@@ -36,23 +36,23 @@ services:
       - internal
     restart: unless-stopped
     # No public port exposure - only accessible via internal network
-
-  redis:
-    image: docker.io/library/redis:7-alpine
-    container_name: redis-prod
-    restart: unless-stopped
-    env_file:
-      - ./env/cache.env
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis-prod:/data
-    networks:
-      - internal
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "-a", "${REDIS_PASSWORD}", "incr", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
+    
+redis:
+  image: docker.io/library/redis:7-alpine
+  container_name: redis-prod
+  restart: unless-stopped
+  env_file:
+    - ./env/cache.env
+  command: sh -c 'redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"'
+  volumes:
+    - redis-prod:/data
+  networks:
+    - internal
+  healthcheck:
+    test: ["CMD", "sh", "-c", "redis-cli --raw -a \"$${REDIS_PASSWORD}\" incr ping"]
+    interval: 10s
+    timeout: 3s
+    retries: 5
     # No public port exposure - only accessible via internal network
 
   comrade-bot:

@@ -1,0 +1,149 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 16,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "basemap": {
+          "name": "OpenStreetMap"
+        },
+        "initialZoom": 2,
+        "initialLatitude": 20,
+        "initialLongitude": -20,
+        "view": "zero",
+        "showLegend": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  r.origin,\n  r.destination,\n  r.origin_lat as latitude,\n  r.origin_lon as longitude,\n  COUNT(*) as route_count\nFROM route_at_synced r\nWHERE r.origin_lat IS NOT NULL AND r.origin_lon IS NOT NULL\nGROUP BY r.origin, r.destination, r.origin_lat, r.origin_lon\nORDER BY route_count DESC",
+          "refId": "A"
+        }
+      ],
+      "type": "geomap",
+      "title": "Flight Routes - Origin Airports"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 16,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 3,
+      "options": {
+        "basemap": {
+          "name": "OpenStreetMap"
+        },
+        "initialZoom": 2,
+        "initialLatitude": 20,
+        "initialLongitude": -20,
+        "view": "zero",
+        "showLegend": true
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  r.origin,\n  r.destination,\n  r.destination_lat as latitude,\n  r.destination_lon as longitude,\n  COUNT(*) as route_count\nFROM route_at_synced r\nWHERE r.destination_lat IS NOT NULL AND r.destination_lon IS NOT NULL\nGROUP BY r.origin, r.destination, r.destination_lat, r.destination_lon\nORDER BY route_count DESC",
+          "refId": "A"
+        }
+      ],
+      "type": "geomap",
+      "title": "Flight Routes - Destination Airports"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "routes",
+    "geomap",
+    "flight-tracking"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Routes Geomap",
+  "uid": "routes-geomap",
+  "version": 1,
+  "weekStart": ""
+}

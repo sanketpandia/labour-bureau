@@ -3,6 +3,12 @@
 
 set -e
 
+# Ensure we're running with bash
+if [ -z "$BASH_VERSION" ]; then
+    echo "❌ Error: This script requires bash. Run with: bash $0" >&2
+    exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CADDYFILE_SOURCE="${SCRIPT_DIR}/Caddyfile"
 CADDYFILE_DEST="/etc/caddy/Caddyfile"

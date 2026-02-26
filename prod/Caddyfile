@@ -42,7 +42,7 @@ comradebot.cc {
   }
 
   # Proxy public API endpoints to backend
-  reverse_proxy /public/* localhost:8080 {
+  reverse_proxy /public/* 127.0.0.1:8080 {
     header_up Host {http.request.header.Host}
     header_up X-Real-IP {http.request.remote.host}
     header_up X-Forwarded-For {http.request.remote.host}
@@ -50,7 +50,7 @@ comradebot.cc {
   }
 
   # Proxy API endpoints to backend
-  reverse_proxy /api/* localhost:8080 {
+  reverse_proxy /api/* 127.0.0.1:8080 {
     header_up Host {http.request.header.Host}
     header_up X-Real-IP {http.request.remote.host}
     header_up X-Forwarded-For {http.request.remote.host}
@@ -58,7 +58,7 @@ comradebot.cc {
   }
 
   # Proxy authentication routes to backend
-  reverse_proxy /auth/* localhost:8080 {
+  reverse_proxy /auth/* 127.0.0.1:8080 {
     header_up Host {http.request.header.Host}
     header_up X-Real-IP {http.request.remote.host}
     header_up X-Forwarded-For {http.request.remote.host}
@@ -66,7 +66,7 @@ comradebot.cc {
   }
 
   # Proxy dashboard routes to backend
-  reverse_proxy /dashboard/* localhost:8080 {
+  reverse_proxy /dashboard/* 127.0.0.1:8080 {
     header_up Host {http.request.header.Host}
     header_up X-Real-IP {http.request.remote.host}
     header_up X-Forwarded-For {http.request.remote.host}
@@ -74,7 +74,7 @@ comradebot.cc {
   }
 
   # Proxy static files to backend
-  reverse_proxy /static/* localhost:8080 {
+  reverse_proxy /static/* 127.0.0.1:8080 {
     header_up Host {http.request.header.Host}
     header_up X-Real-IP {http.request.remote.host}
     header_up X-Forwarded-For {http.request.remote.host}
@@ -82,7 +82,7 @@ comradebot.cc {
   }
 
   # Proxy UI API routes to backend
-  reverse_proxy /ui/api/* localhost:8080 {
+  reverse_proxy /ui/api/* 127.0.0.1:8080 {
     header_up Host {http.request.header.Host}
     header_up X-Real-IP {http.request.remote.host}
     header_up X-Forwarded-For {http.request.remote.host}
@@ -90,7 +90,7 @@ comradebot.cc {
   }
 
   # Proxy all remaining traffic to backend (root / and catch-all)
-  reverse_proxy /* localhost:8080 {
+  reverse_proxy /* 127.0.0.1:8080 {
     header_up Host {http.request.header.Host}
     header_up X-Real-IP {http.request.remote.host}
     header_up X-Forwarded-For {http.request.remote.host}
@@ -119,7 +119,7 @@ monitor.comradebot.cc {
   }
 
   # Proxy all traffic to Grafana
-  reverse_proxy /* localhost:3000 {
+  reverse_proxy /* 127.0.0.1:3000 {
     header_up Host {http.request.header.Host}
     header_up X-Real-IP {http.request.remote.host}
     header_up X-Forwarded-For {http.request.remote.host}

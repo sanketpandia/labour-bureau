@@ -1,0 +1,238 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PCC52D03280B7034C"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "cyan"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 24,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "basemap": {
+          "name": "OpenStreetMap"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": true,
+          "showZoom": true
+        },
+        "initialLatitude": 20,
+        "initialLongitude": -20,
+        "initialZoom": 2,
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "fixed": "cyan"
+                },
+                "opacity": 0.8,
+                "size": {
+                  "fixed": 8,
+                  "max": 20,
+                  "min": 3
+                },
+                "symbol": {
+                  "fixed": "img/icons/unicons/map-pin-alt.svg",
+                  "mode": "fixed"
+                },
+                "text": {
+                  "field": "origin",
+                  "fixed": "",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 13,
+                  "offsetX": 0,
+                  "offsetY": 10,
+                  "textAlign": "center",
+                  "textBaseline": "top"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "A"
+            },
+            "location": {
+              "latitude": "origin_lat",
+              "longitude": "origin_lon",
+              "mode": "coords"
+            },
+            "name": "Origin Airports",
+            "tooltip": true,
+            "type": "markers"
+          },
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "fixed": "light-green"
+                },
+                "opacity": 0.8,
+                "size": {
+                  "fixed": 8,
+                  "max": 20,
+                  "min": 3
+                },
+                "symbol": {
+                  "fixed": "img/icons/unicons/circle.svg",
+                  "mode": "fixed"
+                },
+                "text": {
+                  "field": "destination",
+                  "fixed": "",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 13,
+                  "offsetX": 0,
+                  "offsetY": 10,
+                  "textAlign": "center",
+                  "textBaseline": "top"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "A"
+            },
+            "location": {
+              "latitude": "destination_lat",
+              "longitude": "destination_lon",
+              "mode": "coords"
+            },
+            "name": "Destination Airports",
+            "tooltip": true,
+            "type": "markers"
+          },
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "field": "route_count"
+                },
+                "opacity": 0.6,
+                "size": {
+                  "field": "route_count",
+                  "fixed": 2,
+                  "max": 5,
+                  "min": 1
+                },
+                "symbol": {
+                  "fixed": "line",
+                  "mode": "fixed"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "A"
+            },
+            "location": {
+              "latitude": "origin_lat",
+                "longitude": "origin_lon",
+                "mode": "coords"
+            },
+            "name": "Route Connections",
+            "tooltip": true,
+            "type": "lines"
+          }
+        ],
+        "showLegend": true,
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": "zero"
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PCC52D03280B7034C"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  r.origin,\n  r.destination,\n  r.origin_lat,\n  r.origin_lon,\n  r.destination_lat,\n  r.destination_lon,\n  COUNT(*) as route_count\nFROM route_at_synced r\nWHERE r.origin_lat IS NOT NULL \n  AND r.origin_lon IS NOT NULL\n  AND r.destination_lat IS NOT NULL \n  AND r.destination_lon IS NOT NULL\nGROUP BY r.origin, r.destination, r.origin_lat, r.origin_lon, r.destination_lat, r.destination_lon\nORDER BY route_count DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Global Flight Routes Network",
+      "type": "geomap"
+    }
+  ],
+  "preload": false,
+  "refresh": "30s",
+  "schemaVersion": 42,
+  "style": "dark",
+  "tags": [
+    "routes",
+    "geomap",
+    "flight-tracking",
+    "network"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Routes Connections Map",
+  "uid": "routes-connections-geomap",
+  "version": 0,
+  "weekStart": ""
+}
