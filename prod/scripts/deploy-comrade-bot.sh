@@ -1,5 +1,8 @@
 #!/bin/bash
 # deploy-comrade-bot.sh - Deploy Comrade Bot service (stop, rebuild, restart)
+# Usage: ./deploy-comrade-bot.sh [local|global]
+#   local  - Deploy commands to guild (requires GUILD_ID in env)
+#   global - Deploy commands globally (default if no argument)
 
 set -e
 
@@ -10,6 +13,9 @@ ENV_DIR="${SCRIPT_DIR}/../env"
 NETWORK_NAME="labour-bureau_internal"
 COMRADE_BOT_CONTAINER_NAME="comrade-bot"
 COMRADE_BOT_IMAGE="comrade-bot:latest"
+
+# Get deployment mode from argument (default to global)
+DEPLOY_MODE="${1:-global}"
 
 echo -e "${GREEN}🚀 Deploying Comrade Bot...${NC}"
 
@@ -58,5 +64,23 @@ podman run -d \
     -e DISCORD_BOT_TOKEN="${DISCORD_BOT_TOKEN}" \
     --restart unless-stopped \
     "$COMRADE_BOT_IMAGE"
+
+# Wait for container to be ready
+echo "  Waiting for container to be ready..."
+sleep 3
+
+# Deploy Discord commands
+echo "  Deploying Discord commands (mode: $DEPLOY_MODE)..."
+if [ "$DEPLOY_MODE" = "local" ]; then
+    podman exec "$COMRADE_BOT_CONTAINER_NAME" npm run deploy:local || {
+        echo -e "  ${YELLOW}⚠ Warning: Command deployment failed. You can deploy manually later with:${NC}"
+        echo -e "  ${YELLOW}   podman exec $COMRADE_BOT_CONTAINER_NAME npm run deploy:local${NC}"
+    }
+else
+    podman exec "$COMRADE_BOT_CONTAINER_NAME" npm run deploy:global || {
+        echo -e "  ${YELLOW}⚠ Warning: Command deployment failed. You can deploy manually later with:${NC}"
+        echo -e "  ${YELLOW}   podman exec $COMRADE_BOT_CONTAINER_NAME npm run deploy:global${NC}"
+    }
+fi
 
 echo -e "${GREEN}✅ Comrade Bot deployed successfully!${NC}"
