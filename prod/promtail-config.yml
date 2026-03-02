@@ -28,3 +28,46 @@ scrape_configs:
       # Map container_name to service label for easier querying
       - source_labels: ['container_name']
         target_label: 'service'
+    pipeline_stages:
+      # Remove timestamp prefix added by log shipper (format: "2026-03-02T15:04:00.176Z ")
+      # This extracts just the log content, removing the shipper's timestamp
+      - regex:
+          expression: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z\s+(?P<log_content>.*)'
+          source: line
+      # Ensure we have content to parse (use log_content if set, otherwise use original line)
+      - template:
+          source: content_to_parse
+          template: '{{ if .log_content }}{{ .log_content }}{{ else }}{{ .line }}{{ end }}'
+      # Parse JSON logs (for containers like politburo that output JSON)
+      # This will only parse if the content is valid JSON
+      - json:
+          expressions:
+            log_level: L
+            timestamp: T
+            caller: C
+            message: M
+            # Extract other common fields for filtering/querying
+            sessionID: sessionID
+            sessionName: sessionName
+            flightID: flightID
+            origin: origin
+            destination: destination
+            phase: phase
+          source: content_to_parse
+      # Use the timestamp from JSON if available
+      # Format: "2026-03-02T21:01:01.340+0530" (RFC3339 with nanoseconds and timezone)
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+          fallback_formats:
+            - RFC3339
+            - '2006-01-02T15:04:05.000-0700'  # Format like "2026-03-02T21:01:01.340+0530"
+            - '2006-01-02T15:04:05Z'
+          location: UTC
+      # Add log level as a label for easier filtering (only if JSON parsing succeeded)
+      - labels:
+          log_level: ""
+      # Output: keep the full log content (JSON if parsed, original line otherwise)
+      # This preserves all fields for querying while using the JSON timestamp
+      - output:
+          source: content_to_parse
