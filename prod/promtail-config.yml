@@ -9,32 +9,35 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  # Scrape system logs
-  - job_name: system
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: system
-          __path__: /var/log/*.log
-
-  # Scrape Podman container logs (if available)
-  - job_name: podman-containers
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: podman-containers
-          __path__: /var/log/pods/**/*.log
-
-  # Scrape journald logs (if journald is available in container)
+  # Scrape journald logs (Podman containers log to journald)
   - job_name: journald
     journal:
       path: /var/log/journal
+      max_age: 168h
       labels:
         job: journald
+        source: journald
     relabel_configs:
+      # Extract container name from systemd unit (Podman uses container-<id>.scope format)
+      - source_labels: ['__journal__systemd_unit']
+        regex: '^.*container-([a-f0-9]+)\.scope$'
+        target_label: 'container_id'
+        replacement: '${1}'
+      # Keep the full unit name
       - source_labels: ['__journal__systemd_unit']
         target_label: 'unit'
+      # Extract hostname
       - source_labels: ['__journal__hostname']
         target_label: 'hostname'
+      # Extract container name from CONTAINER_NAME field if available
+      - source_labels: ['__journal__CONTAINER_NAME']
+        target_label: 'container_name'
+      # Map container_name to service label for easier querying (matches dashboard queries)
+      - source_labels: ['container_name']
+        regex: '(.+)'
+        target_label: 'service'
+        replacement: '${1}'
+      # Filter to only include Podman container logs
+      - source_labels: ['__journal__systemd_unit']
+        regex: 'container-.*\.scope'
+        action: keep
