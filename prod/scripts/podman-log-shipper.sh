@@ -10,6 +10,10 @@ mkdir -p "$LOG_DIR" || {
     exit 1
 }
 
+# Ensure log directory is writable by runner user
+# Try to set permissions, but don't fail if we can't (might need sudo)
+chmod 777 "$LOG_DIR" 2>/dev/null || true
+
 # Function to tail a container's logs
 tail_container_logs() {
     local container_name=$1

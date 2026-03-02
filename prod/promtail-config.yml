@@ -19,11 +19,12 @@ scrape_configs:
           job: podman-containers
           source: podman
           __path__: /var/log/containers/*.log
-    pipeline_stages:
-      # Extract container name from filename
-      - regex:
-          expression: '.*containers/(?P<container_name>[^/]+)\.log'
-      # Map container_name to service label
-      - labels:
-          container_name: ""
-          service: container_name
+    relabel_configs:
+      # Extract container name from file path
+      - source_labels: ['__path__']
+        regex: '.*containers/([^/]+)\.log'
+        target_label: 'container_name'
+        replacement: '${1}'
+      # Map container_name to service label for easier querying
+      - source_labels: ['container_name']
+        target_label: 'service'

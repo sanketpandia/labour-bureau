@@ -46,7 +46,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "{service=\"politburo\"}",
+          "expr": "{container_name=\"politburo\"}",
           "refId": "A"
         }
       ],
@@ -81,7 +81,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "{service=\"comrade-bot\"}",
+          "expr": "{container_name=\"comrade-bot\"}",
           "refId": "A"
         }
       ],
