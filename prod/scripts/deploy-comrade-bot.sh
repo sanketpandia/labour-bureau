@@ -69,6 +69,16 @@ podman run -d \
 echo "  Waiting for container to be ready..."
 sleep 3
 
+# Verify build exists before deploying commands
+echo "  Verifying command build..."
+if ! podman exec "$COMRADE_BOT_CONTAINER_NAME" test -f dist/deploy-commands.js; then
+    echo -e "  ${YELLOW}⚠ Warning: dist/deploy-commands.js not found. Building commands...${NC}"
+    podman exec "$COMRADE_BOT_CONTAINER_NAME" npm run build || {
+        echo -e "  ${RED}✗ Error: Failed to build commands${NC}"
+        exit 1
+    }
+fi
+
 # Deploy Discord commands
 echo "  Deploying Discord commands (mode: $DEPLOY_MODE)..."
 if [ "$DEPLOY_MODE" = "local" ]; then

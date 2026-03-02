@@ -36,19 +36,10 @@ else
         -e GF_SECURITY_ADMIN_PASSWORD="${GRAFANA_PASSWORD}" \
         -e GF_SECURITY_ADMIN_USER=admin \
         -e GF_INSTALL_PLUGINS=grafana-worldmap-panel \
-        -e GF_SERVER_ROOT_URL=https://monitor.comradebot.cc \
-        -e GF_SERVER_DOMAIN=monitor.comradebot.cc \
-        -e GF_SECURITY_CORS_ENABLED="true" \
-        -e GF_SECURITY_CORS_ALLOW_ORIGINS="https://monitor.comradebot.cc" \
-        -e GF_SECURITY_CORS_ALLOW_CREDENTIALS="true" \
-        -e GF_SECURITY_COOKIE_SECURE="true" \
-        -e GF_SECURITY_COOKIE_SAMESITE="lax" \
-        -e GF_SECURITY_ALLOW_EMBEDDING="true" \
-        -e GF_USERS_ALLOW_SIGN_UP="false" \
-        -e GF_LOG_LEVEL=warn \
-        -e GF_ANALYTICS_REPORTING_ENABLED="false" \
+        -e GF_PATHS_CONFIG=/etc/grafana/grafana.ini \
         -e GF_PATHS_PROVISIONING=/etc/grafana/provisioning \
         -v labour-bureau_grafana-storage:/var/lib/grafana \
+        -v "${SCRIPT_DIR}/../grafana/grafana.ini:/etc/grafana/grafana.ini:ro" \
         -v "${SCRIPT_DIR}/../grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro" \
         -v "${SCRIPT_DIR}/../grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro" \
         --restart unless-stopped \
