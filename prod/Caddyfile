@@ -120,14 +120,20 @@ monitor.comradebot.cc {
 
   # Proxy all traffic to Grafana
   reverse_proxy /* 127.0.0.1:3000 {
-    header_up Host {http.request.header.Host}
+    # Essential headers for reverse proxy
+    header_up Host {http.request.host}
     header_up X-Real-IP {http.request.remote.host}
     header_up X-Forwarded-For {http.request.remote.host}
     header_up X-Forwarded-Proto {http.request.scheme}
+    header_up X-Forwarded-Host {http.request.host}
+    header_up X-Forwarded-Port {http.request.port}
+    # Preserve original headers
     header_up Origin {http.request.header.Origin}
     header_up Referer {http.request.header.Referer}
     # WebSocket support for Grafana live features
-    header_up Connection *
-    header_up Upgrade websocket
+    header_up Connection {http.request.header.Connection}
+    header_up Upgrade {http.request.header.Upgrade}
+    # Remove hop-by-hop headers that shouldn't be forwarded
+    header_down -X-Frame-Options
   }
 }

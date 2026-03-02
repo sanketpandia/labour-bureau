@@ -27,6 +27,10 @@ if container_exists "$CONTAINER_NAME"; then
         echo "  Already running"
     fi
 else
+    echo "  Building custom Grafana image..."
+    GRAFANA_DIR="${SCRIPT_DIR}/../grafana"
+    podman build -t grafana-custom:latest -f "${GRAFANA_DIR}/Dockerfile" "${GRAFANA_DIR}"
+    
     echo "  Creating new container..."
     podman run -d \
         --name "$CONTAINER_NAME" \
@@ -35,13 +39,7 @@ else
         --env-file "${ENV_DIR}/monitoring.env" \
         -e GF_SECURITY_ADMIN_PASSWORD="${GRAFANA_PASSWORD}" \
         -e GF_SECURITY_ADMIN_USER=admin \
-        -e GF_PATHS_CONFIG=/etc/grafana/grafana.ini \
-        -e GF_PATHS_PROVISIONING=/etc/grafana/provisioning \
-        -e GF_SERVER_ALLOWED_ORIGINS=https://monitor.comradebot.cc \
         -v labour-bureau_grafana-storage:/var/lib/grafana \
-        -v "${SCRIPT_DIR}/../grafana/grafana.ini:/etc/grafana/grafana.ini:ro" \
-        -v "${SCRIPT_DIR}/../grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro" \
-        -v "${SCRIPT_DIR}/../grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro" \
         --restart unless-stopped \
-        docker.io/grafana/grafana:latest
+        grafana-custom:latest
 fi
