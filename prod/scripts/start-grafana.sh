@@ -38,9 +38,11 @@ else
         -e GF_INSTALL_PLUGINS=grafana-worldmap-panel \
         -e GF_SERVER_ROOT_URL=https://monitor.comradebot.cc \
         -e GF_SERVER_DOMAIN=monitor.comradebot.cc \
-        -e GF_SERVER_ALLOWED_ORIGINS="https://monitor.comradebot.cc" \
+        -e GF_SECURITY_CORS_ENABLED="true" \
+        -e GF_SECURITY_CORS_ALLOW_ORIGINS="https://monitor.comradebot.cc" \
+        -e GF_SECURITY_CORS_ALLOW_CREDENTIALS="true" \
         -e GF_SECURITY_COOKIE_SECURE="true" \
-        -e GF_SECURITY_COOKIE_SAMESITE="none" \
+        -e GF_SECURITY_COOKIE_SAMESITE="lax" \
         -e GF_SECURITY_ALLOW_EMBEDDING="true" \
         -e GF_USERS_ALLOW_SIGN_UP="false" \
         -e GF_LOG_LEVEL=warn \

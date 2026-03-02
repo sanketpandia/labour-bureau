@@ -104,7 +104,7 @@ monitor.comradebot.cc {
 
   # Security headers
   header / {
-    # Prevent clickjacking
+    # Prevent clickjacking (allow for embedding if needed)
     X-Frame-Options "SAMEORIGIN"
     # Disable content-type sniffing
     X-Content-Type-Options "nosniff"
