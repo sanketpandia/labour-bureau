@@ -38,7 +38,7 @@ else
         -e GF_PATHS_CONFIG=/etc/grafana/grafana.ini \
         -e GF_PATHS_PROVISIONING=/etc/grafana/provisioning \
         -e GF_SECURITY_CORS_ENABLED=true \
-        -e GF_SECURITY_CORS_ALLOW_ORIGINS=https://monitor.comradebot.cc \
+        -e GF_SECURITY_CORS_ALLOW_ORIGINS="*" \
         -e GF_SECURITY_CORS_ALLOW_CREDENTIALS=true \
         -v labour-bureau_grafana-storage:/var/lib/grafana \
         -v "${SCRIPT_DIR}/../grafana/grafana.ini:/etc/grafana/grafana.ini:ro" \
