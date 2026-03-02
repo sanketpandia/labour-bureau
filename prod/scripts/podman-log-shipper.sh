@@ -1,8 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # podman-log-shipper.sh - Tail Podman container logs and write to files for Promtail
 
+# Find podman in PATH or use common locations
+PODMAN=$(which podman 2>/dev/null || echo "/usr/bin/podman")
+
 LOG_DIR="/var/log/containers"
-mkdir -p "$LOG_DIR"
+mkdir -p "$LOG_DIR" || {
+    echo "ERROR: Cannot create log directory $LOG_DIR" >&2
+    exit 1
+}
 
 # Function to tail a container's logs
 tail_container_logs() {
@@ -12,10 +18,10 @@ tail_container_logs() {
     echo "[$(date +"%Y-%m-%d %H:%M:%S")] Starting log tail for container: $container_name -> $log_file" >&2
     
     while true; do
-        if podman ps --format "{{.Names}}" | grep -q "^${container_name}$"; then
+        if $PODMAN ps --format "{{.Names}}" 2>/dev/null | grep -q "^${container_name}$"; then
             # Container is running, get new logs since last check
             # Poll for new logs every second
-            podman logs --since 2s "$container_name" 2>&1 | while IFS= read -r line || [ -n "$line" ]; do
+            $PODMAN logs --since 2s "$container_name" 2>&1 | while IFS= read -r line || [ -n "$line" ]; do
                 if [ -n "$line" ]; then
                     echo "$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ") $line" >> "$log_file"
                 fi
