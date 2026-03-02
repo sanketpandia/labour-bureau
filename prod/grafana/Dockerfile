@@ -1,12 +1,10 @@
 FROM grafana/grafana:latest
 
-# Copy custom Grafana configuration
+# Copy files as root first
 COPY grafana.ini /etc/grafana/grafana.ini
-
-# Copy provisioning files
 COPY provisioning/ /etc/grafana/provisioning/
 
-# Set proper permissions
+# Change ownership to grafana user (UID 472 is standard for Grafana)
+# The base image will switch to grafana user automatically
 USER root
-RUN chown -R grafana:grafana /etc/grafana
-USER grafana
+RUN chown -R 472:472 /etc/grafana
