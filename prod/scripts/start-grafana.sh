@@ -37,9 +37,7 @@ else
         -e GF_SECURITY_ADMIN_USER=admin \
         -e GF_PATHS_CONFIG=/etc/grafana/grafana.ini \
         -e GF_PATHS_PROVISIONING=/etc/grafana/provisioning \
-        -e GF_SECURITY_CORS_ENABLED=true \
-        -e GF_SECURITY_CORS_ALLOW_ORIGINS="*" \
-        -e GF_SECURITY_CORS_ALLOW_CREDENTIALS=true \
+        -e GF_SERVER_ALLOWED_ORIGINS=https://monitor.comradebot.cc \
         -v labour-bureau_grafana-storage:/var/lib/grafana \
         -v "${SCRIPT_DIR}/../grafana/grafana.ini:/etc/grafana/grafana.ini:ro" \
         -v "${SCRIPT_DIR}/../grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro" \
