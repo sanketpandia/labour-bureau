@@ -34,6 +34,12 @@ podman volume inspect labour-bureau_grafana-storage >/dev/null 2>&1 || podman vo
 "${SCRIPT_DIR}/scripts/start-promtail.sh"
 "${SCRIPT_DIR}/scripts/start-grafana.sh"
 
+# Start log shipper systemd service if not running
+if ! systemctl is-active --quiet podman-log-shipper.service 2>/dev/null; then
+    echo "📝 Starting Podman Log Shipper service..."
+    sudo systemctl start podman-log-shipper.service 2>/dev/null || echo "  Note: Install service with: sudo systemctl enable --now $(realpath ${SCRIPT_DIR}/podman-log-shipper.service)"
+fi
+
 echo -e "\n${GREEN}✅ All services started!${NC}"
 echo ""
 echo "📊 Service Status:"

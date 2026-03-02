@@ -1,0 +1,17 @@
+[Unit]
+Description=Podman Log Shipper - Tails container logs to files for Promtail
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=runner
+Group=runner
+ExecStart=/home/runner/projects/infinite-experiment/labour-bureau/prod/scripts/podman-log-shipper.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
