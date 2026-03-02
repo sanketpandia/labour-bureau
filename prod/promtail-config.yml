@@ -20,9 +20,9 @@ scrape_configs:
           source: podman
           __path__: /var/log/containers/*.log
     relabel_configs:
-      # Extract container name from file path
+      # Extract container name from file path (__path__ contains full path like /var/log/containers/politburo.log)
       - source_labels: ['__path__']
-        regex: '.*containers/([^/]+)\.log'
+        regex: '/var/log/containers/([^/]+)\.log'
         target_label: 'container_name'
         replacement: '${1}'
       # Map container_name to service label for easier querying
