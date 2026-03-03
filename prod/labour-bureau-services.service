@@ -12,13 +12,13 @@ RemainAfterExit=yes
 # For rootless podman, use your username (e.g., User=odin)
 # For rootful podman, use root
 # To check: run 'podman ps' - if it works without sudo, use your username
-User=odin
-Group=odin
-WorkingDirectory=/home/odin/projects/infinite-experiment/labour-bureau/prod
+User=runner
+Group=runner
+WorkingDirectory=/home/runner/projects/labour-bureau/prod
 # Required for rootless podman when running as a system-level service
 Environment=XDG_RUNTIME_DIR=/run/user/1000
-ExecStart=/home/odin/projects/infinite-experiment/labour-bureau/prod/start-services.sh
-ExecStop=/home/odin/projects/infinite-experiment/labour-bureau/prod/stop-services.sh
+ExecStart=/home/runner/projects/labour-bureau/prod/start-services.sh
+ExecStop=/home/runner/projects/labour-bureau/prod/stop-services.sh
 StandardOutput=journal
 StandardError=journal
 # Restart the systemd service if it fails (though containers auto-restart)
