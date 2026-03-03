@@ -15,6 +15,8 @@ RemainAfterExit=yes
 User=odin
 Group=odin
 WorkingDirectory=/home/odin/projects/infinite-experiment/labour-bureau/prod
+# Required for rootless podman when running as a system-level service
+Environment=XDG_RUNTIME_DIR=/run/user/1000
 ExecStart=/home/odin/projects/infinite-experiment/labour-bureau/prod/start-services.sh
 ExecStop=/home/odin/projects/infinite-experiment/labour-bureau/prod/stop-services.sh
 StandardOutput=journal
