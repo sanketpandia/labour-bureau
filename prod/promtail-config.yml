@@ -20,9 +20,10 @@ scrape_configs:
           source: podman
           __path__: /var/log/containers/*.log
     relabel_configs:
-      # Extract container name from file path (__path__ contains full path like /var/log/containers/politburo.log)
+      # Extract container name from file path
+      # Promtail expands globs and sets __path__ for each discovered file
       - source_labels: ['__path__']
-        regex: '/var/log/containers/([^/]+)\.log'
+        regex: '.*/containers/([^/]+)\.log'
         target_label: 'container_name'
         replacement: '${1}'
       # Map container_name to service label for easier querying
@@ -30,16 +31,17 @@ scrape_configs:
         target_label: 'service'
     pipeline_stages:
       # Remove timestamp prefix added by log shipper (format: "2026-03-02T15:04:00.176Z ")
-      # This extracts just the log content, removing the shipper's timestamp
+      # Extract the actual log content after the timestamp
       - regex:
-          expression: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z\s+(?P<log_content>.*)'
+          expression: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z\s+(?P<log_line>.*)'
           source: line
-      # Ensure we have content to parse (use log_content if set, otherwise use original line)
+      # If regex didn't match (no timestamp prefix), log_line won't be set, so use original line
+      # Set the output to use log_line if available, otherwise use original line
       - template:
-          source: content_to_parse
-          template: '{{ if .log_content }}{{ .log_content }}{{ else }}{{ .line }}{{ end }}'
+          source: output_line
+          template: '{{ if .log_line }}{{ .log_line }}{{ else }}{{ .line }}{{ end }}'
       # Parse JSON logs (for containers like politburo that output JSON)
-      # This will only parse if the content is valid JSON
+      # Parse from output_line which contains the actual log content
       - json:
           expressions:
             log_level: L
@@ -53,7 +55,7 @@ scrape_configs:
             origin: origin
             destination: destination
             phase: phase
-          source: content_to_parse
+          source: output_line
       # Use the timestamp from JSON if available
       # Format: "2026-03-02T21:01:01.340+0530" (RFC3339 with nanoseconds and timezone)
       - timestamp:
@@ -67,7 +69,7 @@ scrape_configs:
       # Add log level as a label for easier filtering (only if JSON parsing succeeded)
       - labels:
           log_level: ""
-      # Output: keep the full log content (JSON if parsed, original line otherwise)
-      # This preserves all fields for querying while using the JSON timestamp
+      # Output: Always output the actual log content (output_line contains the log message)
+      # This preserves the full log message for display in Grafana
       - output:
-          source: content_to_parse
+          source: output_line
