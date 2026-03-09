@@ -7,14 +7,16 @@ This directory contains all production deployment configuration files for the In
 ```
 prod/
 ├── docker-compose.prod.yml          # Main production compose file
+├── labour-bureau-compose.service    # Systemd unit (recommended: keeps stack up reliably)
+├── labour-bureau-services.service   # DEPRECATED: use labour-bureau-compose.service
+├── start-services.sh                # Manual start via podman compose
+├── stop-services.sh                 # Manual stop via podman compose
+├── deploy-services.sh              # Deploy politburo and/or comrade-bot
 ├── Caddyfile                        # Caddy reverse proxy config
 ├── prometheus.prod.yml              # Prometheus config
 ├── loki.prod.yml                    # Loki config
 ├── promtail-config.yml              # Promtail config
 ├── grafana/                         # Grafana provisioning
-│   └── provisioning/
-│       ├── dashboards/
-│       └── datasources/
 ├── env/                             # Environment variable templates
 │   ├── politburo.env.example
 │   ├── comrade-bot.env.example
@@ -116,40 +118,60 @@ This should show: `Docker Root Dir: /mnt/HC_Volume_104770220/docker`
 
 ## Deployment
 
-### Start the Stack
+### Reliable startup with systemd (Podman, recommended)
 
-From the `labour-bureau` directory:
+For production on Podman (e.g. Ubuntu), use the **labour-bureau-compose.service** systemd unit so the stack stays up across reboots and systemd accurately reflects container state:
+
+1. Edit `labour-bureau-compose.service` and set `WorkingDirectory`, `User`, `Group`, `EnvironmentFile`, and `XDG_RUNTIME_DIR` to match your server (paths and uid).
+2. Install and enable:
+   ```bash
+   sudo cp prod/labour-bureau-compose.service /etc/systemd/system/
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now labour-bureau-compose.service
+   ```
+3. The unit runs `podman compose up` in the foreground; if it exits, systemd restarts it. Caddy and the log shipper (podman-log-shipper.service) remain separate units.
+
+**Deprecated:** `labour-bureau-services.service` (oneshot) is deprecated; it can show "active" while no containers are running after a reboot. Use `labour-bureau-compose.service` instead.
+
+### Start the stack manually (ad-hoc)
+
+From the `prod` directory (e.g. for testing):
 
 ```bash
-docker-compose -f prod/docker-compose.prod.yml up -d
+cd prod
+./start-services.sh
+# or: podman compose -f docker-compose.prod.yml up -d
 ```
 
 ### Check Service Status
 
 ```bash
-docker-compose -f prod/docker-compose.prod.yml ps
+cd prod && podman compose -f docker-compose.prod.yml ps
+# or: podman ps --filter "name=politburo|db|redis|..."
 ```
 
 ### View Logs
 
 ```bash
+cd prod
 # All services
-docker-compose -f prod/docker-compose.prod.yml logs -f
+podman compose -f docker-compose.prod.yml logs -f
 
 # Specific service
-docker-compose -f prod/docker-compose.prod.yml logs -f politburo
+podman compose -f docker-compose.prod.yml logs -f politburo
 ```
 
 ### Stop the Stack
 
 ```bash
-docker-compose -f prod/docker-compose.prod.yml down
+cd prod && ./stop-services.sh
+# or: podman compose -f docker-compose.prod.yml down
 ```
 
 ### Stop and Remove Volumes (⚠️ Destroys Data)
 
 ```bash
-docker-compose -f prod/docker-compose.prod.yml down -v
+cd prod && podman compose -f docker-compose.prod.yml down -v
 ```
 
 ## Service Access
@@ -203,7 +225,7 @@ Ensure `REDIS_PASSWORD` in `cache.env` matches the password used in `politburo.e
 Check service health:
 
 ```bash
-docker-compose -f prod/docker-compose.prod.yml ps
+cd prod && podman compose -f docker-compose.prod.yml ps
 ```
 
 All services should show "healthy" status.
@@ -211,14 +233,10 @@ All services should show "healthy" status.
 ### View Service Logs
 
 ```bash
-# Politburo logs
-docker-compose -f prod/docker-compose.prod.yml logs politburo
-
-# Database logs
-docker-compose -f prod/docker-compose.prod.yml logs db
-
-# All logs
-docker-compose -f prod/docker-compose.prod.yml logs
+cd prod
+podman compose -f docker-compose.prod.yml logs -f politburo
+podman compose -f docker-compose.prod.yml logs -f db
+podman compose -f docker-compose.prod.yml logs -f
 ```
 
 ## Backup Recommendations
@@ -226,7 +244,7 @@ docker-compose -f prod/docker-compose.prod.yml logs
 ### PostgreSQL Backup
 
 ```bash
-docker-compose -f prod/docker-compose.prod.yml exec db pg_dump -U ${POSTGRES_USER} ${POSTGRES_DB} > backup.sql
+cd prod && podman compose -f docker-compose.prod.yml exec db pg_dump -U ${POSTGRES_USER} ${POSTGRES_DB} > backup.sql
 ```
 
 ### Redis Backup
@@ -235,12 +253,17 @@ Redis data is persisted via AOF (Append Only File) in the `redis-prod` volume.
 
 ## Updates
 
-To update the stack:
+To deploy updated politburo or comrade-bot (rebuild and recreate that service):
 
 ```bash
-# Pull latest images
-docker-compose -f prod/docker-compose.prod.yml pull
+cd prod
+./deploy-services.sh politburo    # or comrade-bot, or all
+```
 
-# Rebuild and restart
-docker-compose -f prod/docker-compose.prod.yml up -d --build
+To pull images and rebuild the whole stack:
+
+```bash
+cd prod
+podman compose -f docker-compose.prod.yml pull
+podman compose -f docker-compose.prod.yml up -d --build
 ```

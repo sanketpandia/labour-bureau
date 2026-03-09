@@ -67,7 +67,9 @@ services:
     network_mode: "host"
     volumes:
       - ../comrade-bot:/app
-    command: ["ts-node-dev", "--respawn", "--transpile-only", "src/index.ts"]
+      # Keep node_modules inside the container so native deps (e.g. canvas → libjpeg) match container libs
+      - comrade_bot_node_modules:/app/node_modules
+    command: ["sh", "-c", "npm install && exec ts-node-dev --respawn --transpile-only src/index.ts"]
     stdin_open: true
     env_file:
       - ../comrade-bot/.env
@@ -155,3 +157,4 @@ volumes:
   prometheus-storage:
   loki-storage:
   grafana-storage:
+  comrade_bot_node_modules:

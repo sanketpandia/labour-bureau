@@ -1,11 +1,14 @@
 #!/bin/bash
-# stop-services.sh - Stop all services
+# stop-services.sh - Stop the Labour Bureau stack via podman compose
 
 set -e
 
-echo "🛑 Stopping Labour Bureau Services..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.prod.yml"
 
-# Stop all containers
-podman stop db redis politburo comrade-bot prometheus loki promtail grafana 2>/dev/null || true
+echo "🛑 Stopping Labour Bureau stack..."
 
-echo "✅ All services stopped"
+cd "$SCRIPT_DIR"
+podman compose -f "$COMPOSE_FILE" down
+
+echo "✅ Stack stopped"

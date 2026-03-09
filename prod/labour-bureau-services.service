@@ -1,5 +1,9 @@
+# DEPRECATED: Use labour-bureau-compose.service instead.
+# This oneshot unit can report "active" while containers are not running after reboot.
+# The compose-based unit runs "podman compose up" in the foreground so systemd tracks the stack reliably.
+
 [Unit]
-Description=Labour Bureau Services (Politburo, Comrade Bot, DB, Redis, Monitoring)
+Description=Labour Bureau Services (Politburo, Comrade Bot, DB, Redis, Monitoring) [DEPRECATED - use labour-bureau-compose.service]
 Documentation=https://github.com/infinite-experiment
 After=network-online.target podman.service
 Wants=network-online.target

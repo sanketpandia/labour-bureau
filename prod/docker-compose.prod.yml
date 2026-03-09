@@ -1,6 +1,9 @@
 version: "3.9"
+# Project name so volumes match legacy names (e.g. labour-bureau_pgdata-prod)
+name: labour-bureau
 services:
   politburo:
+    container_name: politburo
     build:
       context: ../../politburo
       dockerfile: Dockerfile
@@ -21,6 +24,7 @@ services:
       retries: 3
 
   db:
+    container_name: db
     image: docker.io/library/postgres:15
     env_file:
       - ./env/database.env
@@ -36,26 +40,27 @@ services:
       - internal
     restart: unless-stopped
     # No public port exposure - only accessible via internal network
-    
-redis:
-  image: docker.io/library/redis:7-alpine
-  container_name: redis-prod
-  restart: unless-stopped
-  env_file:
-    - ./env/cache.env
-  command: sh -c 'redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"'
-  volumes:
-    - redis-prod:/data
-  networks:
-    - internal
-  healthcheck:
-    test: ["CMD", "sh", "-c", "redis-cli --raw -a \"$${REDIS_PASSWORD}\" incr ping"]
-    interval: 10s
-    timeout: 3s
-    retries: 5
+
+  redis:
+    container_name: redis
+    image: docker.io/library/redis:7-alpine
+    restart: unless-stopped
+    env_file:
+      - ./env/cache.env
+    command: sh -c 'redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"'
+    volumes:
+      - redis-prod:/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "sh", "-c", "redis-cli --raw -a \"$${REDIS_PASSWORD}\" incr ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     # No public port exposure - only accessible via internal network
 
   comrade-bot:
+    container_name: comrade-bot
     build:
       context: ../../comrade-bot
       dockerfile: Dockerfile
@@ -100,8 +105,8 @@ redis:
     restart: unless-stopped
     volumes:
       - ./promtail-config.yml:/etc/promtail/config.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+      # Podman: log shipper writes to /var/log/containers/*.log
+      - /var/log/containers:/var/log/containers:ro
       - /var/log:/var/log:ro
     ports:
       - "9080:9080"

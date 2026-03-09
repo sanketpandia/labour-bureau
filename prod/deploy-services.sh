@@ -59,4 +59,5 @@ done
 echo -e "${GREEN}✅ Deployment complete!${NC}"
 echo ""
 echo "📊 Service Status:"
-podman ps --filter "name=politburo\|comrade-bot" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+cd "$SCRIPT_DIR"
+podman compose -f docker-compose.prod.yml ps 2>/dev/null || podman ps --filter "name=politburo\|comrade-bot" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"

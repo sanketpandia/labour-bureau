@@ -1,0 +1,33 @@
+[Unit]
+Description=Labour Bureau stack via podman compose (Politburo, Comrade Bot, DB, Redis, Monitoring)
+Documentation=https://github.com/infinite-experiment
+After=network-online.target podman.service
+Wants=network-online.target
+Requires=podman.service
+
+[Service]
+Type=simple
+# Run compose in foreground so systemd tracks the stack; Restart=always brings it back if it exits
+ExecStart=/usr/bin/podman compose -f docker-compose.prod.yml up
+# Optional: clean tear-down on stop (compose will also stop on SIGTERM)
+ExecStop=/usr/bin/podman compose -f docker-compose.prod.yml down -t 30
+TimeoutStopSec=90
+
+WorkingDirectory=/home/runner/projects/labour-bureau/prod
+# GRAFANA_ADMIN_PASSWORD for compose substitution; adjust path for your Ubuntu user
+EnvironmentFile=-/home/runner/projects/labour-bureau/prod/env/monitoring.env
+
+# Match user that runs podman (rootless: your user; rootful: root)
+User=runner
+Group=runner
+# Required for rootless podman when running as a system-level service (use your uid: id -u)
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+
+Restart=always
+RestartSec=10
+TimeoutStartSec=300
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
