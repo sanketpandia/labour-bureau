@@ -29,6 +29,7 @@ podman volume inspect labour-bureau_grafana-storage >/dev/null 2>&1 || podman vo
 "${SCRIPT_DIR}/scripts/start-redis.sh"
 "${SCRIPT_DIR}/scripts/start-politburo.sh"
 "${SCRIPT_DIR}/scripts/start-comrade-bot.sh"
+"${SCRIPT_DIR}/scripts/start-node-exporter.sh"
 "${SCRIPT_DIR}/scripts/start-prometheus.sh"
 "${SCRIPT_DIR}/scripts/start-loki.sh"
 "${SCRIPT_DIR}/scripts/start-promtail.sh"
@@ -43,4 +44,4 @@ fi
 echo -e "\n${GREEN}✅ All services started!${NC}"
 echo ""
 echo "📊 Service Status:"
-podman ps --filter "name=db\|redis\|politburo\|comrade-bot\|prometheus\|loki\|promtail\|grafana" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+podman ps --filter "name=db\|redis\|politburo\|comrade-bot\|node-exporter\|prometheus\|loki\|promtail\|grafana" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
