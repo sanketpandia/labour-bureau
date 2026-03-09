@@ -168,6 +168,39 @@ cd prod && ./stop-services.sh
 # or: podman compose -f docker-compose.prod.yml down
 ```
 
+### Recovery: all containers are down
+
+If every container is stopped (e.g. after a reboot or manual stop) and you want the stack back up:
+
+**Option 1 – systemd (if you use labour-bureau-compose.service)**
+
+```bash
+sudo systemctl start labour-bureau-compose.service
+```
+
+**Option 2 – manual start from prod**
+
+```bash
+cd ~/projects/labour-bureau/prod
+./start-services.sh
+```
+
+If you see errors like **"container name already in use"** (exited containers with the same names as the stack), remove those and start again:
+
+```bash
+cd ~/projects/labour-bureau/prod
+./scripts/clean-exited-for-compose.sh
+./start-services.sh
+```
+
+Or by hand (only removes exited containers):
+
+```bash
+podman rm -f politburo comrade-bot db redis prometheus loki promtail grafana 2>/dev/null || true
+podman rm -f prod_db_1 prod_politburo_1 prod_comrade-bot_1 2>/dev/null || true
+cd ~/projects/labour-bureau/prod && ./start-services.sh
+```
+
 ### Stop and Remove Volumes (⚠️ Destroys Data)
 
 ```bash
