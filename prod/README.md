@@ -69,44 +69,15 @@ Edit each `.env` file and replace all `CHANGE_ME` values with your generated sec
 - **`comrade-bot.env`**: Set `BOT_TOKEN` (Discord bot token)
 - **`monitoring.env`**: Set `GRAFANA_ADMIN_PASSWORD`
 
-### 4. Configure Docker to Use Mounted Disk for Volumes
+### 4. Configure Podman to Use Mounted Disk for Volumes
 
-To store all Docker volumes (including PostgreSQL data) on your mounted disk (`/mnt/HC_Volume_104770220`), configure Docker's data-root:
-
-**Create Docker configuration directory:**
-```bash
-sudo mkdir -p /etc/docker
-```
-
-**Create or edit `/etc/docker/daemon.json`:**
-```bash
-sudo nano /etc/docker/daemon.json
-```
-
-**Add the following configuration:**
-```json
-{
-  "data-root": "/mnt/HC_Volume_104770220/docker"
-}
-```
-
-**Restart Docker:**
-```bash
-sudo systemctl restart docker
-```
-
-**Verify the configuration:**
-```bash
-docker info | grep "Docker Root Dir"
-```
-
-This should show: `Docker Root Dir: /mnt/HC_Volume_104770220/docker`
+To store all Podman volumes (including PostgreSQL data) on your mounted disk (`/mnt/HC_Volume_104770220`), configure Podman's data-root (e.g. in `/etc/containers/storage.conf` or via `--root`). See [Podman storage](https://docs.podman.io/en/latest/markdown/podman-system.1.html).
 
 **Note:** After changing the data-root, existing volumes will need to be migrated or recreated. If you have existing volumes, you may need to:
-1. Stop all containers: `docker-compose down`
+1. Stop all containers: `podman compose -f docker-compose.prod.yml down`
 2. Backup existing volumes (if any)
-3. Restart Docker with new data-root
-4. Recreate volumes: `docker-compose up -d`
+3. Restart Podman / adjust storage config
+4. Recreate volumes: `podman compose -f docker-compose.prod.yml up -d`
 
 ### 5. Security Notes
 
