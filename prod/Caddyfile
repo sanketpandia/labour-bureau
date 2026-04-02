@@ -98,6 +98,32 @@ comradebot.cc {
   }
 }
 
+jobs.comradebot.cc {
+  encode gzip
+
+  log {
+    output stdout
+    format json
+    level INFO
+  }
+
+  header / {
+    X-Frame-Options "SAMEORIGIN"
+    X-Content-Type-Options "nosniff"
+    X-XSS-Protection "1; mode=block"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    X-Download-Options "noopen"
+    Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  }
+
+  reverse_proxy /* 127.0.0.1:3001 {
+    header_up Host {http.request.header.Host}
+    header_up X-Real-IP {http.request.remote.host}
+    header_up X-Forwarded-For {http.request.remote.host}
+    header_up X-Forwarded-Proto {http.request.scheme}
+  }
+}
+
 monitor.comradebot.cc {
   # Enable automatic HTTPS (Let's Encrypt)
   encode gzip

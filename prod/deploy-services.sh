@@ -11,24 +11,25 @@ SERVICES=()
 
 if [ $# -eq 0 ]; then
     # No arguments - show usage
-    echo "Usage: $0 [politburo|comrade-bot|all]"
+    echo "Usage: $0 [politburo|comrade-bot|jobhunt|all]"
     echo ""
     echo "Examples:"
     echo "  $0 politburo          # Deploy only Politburo"
     echo "  $0 comrade-bot        # Deploy only Comrade Bot"
-    echo "  $0 all                # Deploy both services"
+    echo "  $0 jobhunt            # Deploy only Jobhunt"
+    echo "  $0 all                # Deploy all services"
     exit 1
 fi
 
 # Parse service arguments
 for arg in "$@"; do
     case "$arg" in
-        politburo|comrade-bot|all)
+        politburo|comrade-bot|jobhunt|all)
             SERVICES+=("$arg")
             ;;
         *)
             echo -e "${RED}✗ Unknown service: $arg${NC}"
-            echo "Valid services: politburo, comrade-bot, all"
+            echo "Valid services: politburo, comrade-bot, jobhunt, all"
             exit 1
             ;;
     esac
@@ -36,7 +37,7 @@ done
 
 # Expand "all" to both services
 if [[ " ${SERVICES[@]} " =~ " all " ]]; then
-    SERVICES=("politburo" "comrade-bot")
+    SERVICES=("politburo" "comrade-bot" "jobhunt")
 fi
 
 echo -e "${GREEN}🚀 Deploying services: ${SERVICES[*]}${NC}"
@@ -51,6 +52,10 @@ for service in "${SERVICES[@]}"; do
             ;;
         comrade-bot)
             "${SCRIPT_DIR}/scripts/deploy-comrade-bot.sh"
+            echo ""
+            ;;
+        jobhunt)
+            "${SCRIPT_DIR}/scripts/deploy-jobhunt.sh"
             echo ""
             ;;
     esac
