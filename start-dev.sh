@@ -28,8 +28,9 @@ tmux new-window -t "$SESSION":1 -n "comrade-bot"
 tmux send-keys -t "$SESSION":1 "$COMPOSE_CMD -f $COMPOSE_FILE logs -f comrade-bot" C-m
 
 # Window 2 → politburo (run directly; optional — can use VS Code "Debug Politburo Server" instead)
+# Output is tee'd to /tmp/politburo.log so Promtail can scrape it into Loki.
 tmux new-window -t "$SESSION":2 -n "politburo"
-tmux send-keys -t "$SESSION":2 "cd ../politburo && air -c air.toml" C-m
+tmux send-keys -t "$SESSION":2 "cd ../politburo && air -c air.toml 2>&1 | tee /tmp/politburo.log" C-m
 
 # Window 3 → vizburo logs
 tmux new-window -t "$SESSION":3 -n "vizburo"

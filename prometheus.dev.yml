@@ -10,10 +10,10 @@ alerting:
         - targets: []
 
 scrape_configs:
-  # Politburo API metrics
+  # Politburo API metrics — process runs on the host (outside Docker), reached via host.docker.internal
   - job_name: 'politburo'
     static_configs:
-      - targets: ['politburo:8080']
+      - targets: ['host.docker.internal:8080']
     metrics_path: '/metrics'
     scrape_interval: 15s
     scrape_timeout: 5s

@@ -33,7 +33,7 @@ services:
       POSTGRES_PASSWORD: iepass
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
-      - /home/odin/projects/infinite-experiment/politburo/internal/db/migrations:/migrations:ro
+      - ../politburo/internal/db/migrations:/migrations:ro
     ports:
       - "5432:5432"
 
@@ -119,11 +119,16 @@ services:
     image: grafana/promtail:latest
     container_name: promtail
     restart: always
+    # userns_mode: keep-id runs the container as the host user (eklavya) so the
+    # systemd-journal group membership carries through and grants read access to
+    # /var/log/journal. Requires: sudo usermod -aG systemd-journal eklavya + re-login.
+    userns_mode: "keep-id"
     volumes:
       - ./promtail-config.yml:/etc/promtail/config.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log/journal:/var/log/journal:ro
       - /var/log:/var/log:ro
+      # Mount host /tmp so Promtail can tail /tmp/politburo.log written by the host air process
+      - /tmp:/host-tmp:ro
     ports:
       - "9080:9080"
     command: -config.file=/etc/promtail/config.yml
@@ -141,7 +146,6 @@ services:
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_SECURITY_ADMIN_USER: admin
-      GF_INSTALL_PLUGINS: grafana-worldmap-panel
     volumes:
       - grafana-storage:/var/lib/grafana
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro

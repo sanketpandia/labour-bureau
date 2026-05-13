@@ -55,6 +55,20 @@ scrape_configs:
             origin: origin
             destination: destination
             phase: phase
+            # Watermill / PIREP messaging fields
+            handler: handler
+            message_uuid: message_uuid
+            va_id: va_id
+            record_id: record_id
+            attempt: attempt
+            # Rate-limit middleware fields
+            group: group
+            user_id: user_id
+            count: count
+            limit: limit
+            # Auth middleware fields
+            method: method
+            path: path
           source: output_line
       # Use the timestamp from JSON if available
       # Format: "2026-03-02T21:01:01.340+0530" (RFC3339 with nanoseconds and timezone)
