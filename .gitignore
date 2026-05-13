@@ -7,3 +7,14 @@ prod/env/comrade-bot.env
 prod/env/database.env
 prod/env/monitoring.env
 prod/env/politburo.env
+
+# AI tooling artifacts
+CLAUDE.md
+.claude/
+.cursor/
+.dev-log/
+plans/
+memory/
+PLAN.md
+WORKLOG.md
+ARCHITECTURE_NOTES.md
