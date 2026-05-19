@@ -60,6 +60,18 @@ scrape_configs:
             # Auth middleware fields
             method: method
             path: path
+            # Comrade Bot structured JSON fields
+            level: level
+            service_field: service
+            env_field: env
+            event: event
+            command: command
+            interaction_type: interaction_type
+            guild_id: guild_id
+            result: result
+            duration_ms: duration_ms
+            error_name: error_name
+            error_message: error_message
       # Use the JSON timestamp when available, fall back to journal timestamp
       - timestamp:
           source: timestamp
@@ -72,6 +84,7 @@ scrape_configs:
       # Promote log_level to a Loki stream label for efficient filtering
       - labels:
           log_level: ""
+          level: ""
 
   # Scrapes the politburo log file written by air/the server process running on the host.
   # The start-dev.sh script redirects politburo output to /tmp/politburo.log.
@@ -111,6 +124,17 @@ scrape_configs:
             limit: limit
             method: method
             path: path
+            level: level
+            service_field: service
+            env_field: env
+            event: event
+            command: command
+            interaction_type: interaction_type
+            guild_id: guild_id
+            result: result
+            duration_ms: duration_ms
+            error_name: error_name
+            error_message: error_message
       - timestamp:
           source: timestamp
           format: RFC3339Nano
@@ -121,3 +145,4 @@ scrape_configs:
           location: UTC
       - labels:
           log_level: ""
+          level: ""

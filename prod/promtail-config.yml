@@ -69,6 +69,18 @@ scrape_configs:
             # Auth middleware fields
             method: method
             path: path
+            # Comrade Bot structured JSON fields
+            level: level
+            service_field: service
+            env_field: env
+            event: event
+            command: command
+            interaction_type: interaction_type
+            guild_id: guild_id
+            result: result
+            duration_ms: duration_ms
+            error_name: error_name
+            error_message: error_message
           source: output_line
       # Use the timestamp from JSON if available
       # Format: "2026-03-02T21:01:01.340+0530" (RFC3339 with nanoseconds and timezone)
@@ -83,6 +95,7 @@ scrape_configs:
       # Add log level as a label for easier filtering (only if JSON parsing succeeded)
       - labels:
           log_level: ""
+          level: ""
       # Output: Always output the actual log content (output_line contains the log message)
       # This preserves the full log message for display in Grafana
       - output:

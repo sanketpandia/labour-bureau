@@ -79,6 +79,12 @@ services:
     stdin_open: true
     env_file:
       - ../comrade-bot/.env
+    environment:
+      APP_ENV: dev
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      METRICS_ENABLED: ${METRICS_ENABLED:-true}
+      METRICS_HOST: ${METRICS_HOST:-0.0.0.0}
+      METRICS_PORT: ${METRICS_PORT:-9091}
     labels:
       service: "comrade-bot"
       env: "dev"
