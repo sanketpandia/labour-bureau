@@ -3,6 +3,8 @@
 # Usage: ./deploy-comrade-bot.sh [local|global]
 #   local  - Deploy commands to guild (requires GUILD_ID in env)
 #   global - Deploy commands globally (default if no argument)
+# Set ALLOW_COMMAND_DEPLOY_FAILURE=true to keep the bot restart non-blocking if
+# Discord command deployment fails and commands will be deployed manually.
 
 set -e
 
@@ -35,13 +37,20 @@ fi
 
 echo "  Deploying Discord commands (mode: $DEPLOY_MODE)..."
 if [ "$DEPLOY_MODE" = "local" ]; then
-    podman exec "$COMRADE_BOT_CONTAINER_NAME" npm run deploy:local || {
-        echo -e "${YELLOW}⚠ Warning: Command deployment failed. Deploy manually: podman exec $COMRADE_BOT_CONTAINER_NAME npm run deploy:local${NC}"
-    }
+    COMMAND_DEPLOY_SCRIPT="commands:deploy:local"
 else
-    podman exec "$COMRADE_BOT_CONTAINER_NAME" npm run deploy:global || {
-        echo -e "${YELLOW}⚠ Warning: Command deployment failed. Deploy manually: podman exec $COMRADE_BOT_CONTAINER_NAME npm run deploy:global${NC}"
-    }
+    COMMAND_DEPLOY_SCRIPT="commands:deploy:global"
+fi
+
+if ! podman exec "$COMRADE_BOT_CONTAINER_NAME" npm run "$COMMAND_DEPLOY_SCRIPT"; then
+    echo -e "${RED}✗ Error: Command deployment failed.${NC}"
+    echo -e "${YELLOW}Remediation: podman exec $COMRADE_BOT_CONTAINER_NAME npm run $COMMAND_DEPLOY_SCRIPT${NC}"
+
+    if [ "${ALLOW_COMMAND_DEPLOY_FAILURE:-false}" = "true" ]; then
+        echo -e "${YELLOW}⚠ ALLOW_COMMAND_DEPLOY_FAILURE=true; continuing despite command deployment failure.${NC}"
+    else
+        exit 1
+    fi
 fi
 
 echo -e "${GREEN}✅ Comrade Bot deployed successfully!${NC}"

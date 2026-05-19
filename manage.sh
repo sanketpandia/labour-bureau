@@ -107,7 +107,7 @@ function redeploy_service {
 
 function deploy_commands {
   echo "🚀 Deploying Discord bot commands..."
-  docker compose -f "$DOCKER_COMPOSE_FILE" exec "$BOT_CONTAINER_NAME" npm run deploy-commands
+  docker compose -f "$DOCKER_COMPOSE_FILE" exec "$BOT_CONTAINER_NAME" npm run commands:deploy
 }
 
 function down {
