@@ -21,23 +21,23 @@ export DATABASE_URL="postgres://ieuser:iepass@db:5432/infinite?sslmode=disable"
 
 # Create tmux session (detached) with window 0 running compose up
 tmux new-session -d -s "$SESSION" -n "compose-up"
-tmux send-keys -t "$SESSION":0 "$COMPOSE_CMD -f $COMPOSE_FILE up" C-m
+tmux send-keys -t "$SESSION":1 "$COMPOSE_CMD -f $COMPOSE_FILE up" C-m
 
 # Window 1 → comrade-bot logs
-tmux new-window -t "$SESSION":1 -n "comrade-bot"
-tmux send-keys -t "$SESSION":1 "$COMPOSE_CMD -f $COMPOSE_FILE logs -f comrade-bot" C-m
+tmux new-window -t "$SESSION":2 -n "comrade-bot"
+tmux send-keys -t "$SESSION":2 "$COMPOSE_CMD -f $COMPOSE_FILE logs -f comrade-bot" C-m
 
 # Window 2 → politburo (run directly; optional — can use VS Code "Debug Politburo Server" instead)
 # Output is tee'd to /tmp/politburo.log so Promtail can scrape it into Loki.
-tmux new-window -t "$SESSION":2 -n "politburo"
-tmux send-keys -t "$SESSION":2 "cd ../politburo && air -c air.toml 2>&1 | tee /tmp/politburo.log" C-m
+tmux new-window -t "$SESSION":3 -n "politburo"
+tmux send-keys -t "$SESSION":3 "cd ../politburo && go tool air -c air.toml 2>&1 | tee /tmp/politburo.log" C-m
 
 # Window 3 → vizburo logs
-tmux new-window -t "$SESSION":3 -n "vizburo"
-tmux send-keys -t "$SESSION":3 "$COMPOSE_CMD -f $COMPOSE_FILE logs -f vizburo" C-m
+tmux new-window -t "$SESSION":4 -n "vizburo"
+tmux send-keys -t "$SESSION":4 "$COMPOSE_CMD -f $COMPOSE_FILE logs -f vizburo" C-m
 
 # Back to window 0
-tmux select-window -t "$SESSION":0
+tmux select-window -t "$SESSION":1
 
 # Attach
 tmux attach-session -t "$SESSION"

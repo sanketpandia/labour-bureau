@@ -58,6 +58,12 @@ services:
     depends_on:
       - db
 
+  swagger-editor:
+    image: swaggerapi/swagger-editor
+    restart: always
+    ports:
+      - "8081:80"
+
   comrade-bot:
     build:
       context: ../comrade-bot
