@@ -104,13 +104,10 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     restart: always
-    ports:
-      - "9090:9090"
+    network_mode: "host"
     volumes:
       - ./prometheus.dev.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-storage:/prometheus
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -153,11 +150,11 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     restart: always
-    ports:
-      - "3000:3000"
+    network_mode: "host"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_SECURITY_ADMIN_USER: admin
+      PG_PASSWORD: iepass
     volumes:
       - grafana-storage:/var/lib/grafana
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
