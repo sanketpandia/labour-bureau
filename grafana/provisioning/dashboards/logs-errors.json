@@ -168,7 +168,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "rate(politburo_http_requests_total{status_code=~\"5..\"}[5m]) / rate(politburo_http_requests_total[5m]) * 100",
+          "expr": "100 * sum(rate(politburo_http_requests_total{status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(politburo_http_requests_total[5m])), 0.001)",
           "legendFormat": "5xx Error Rate",
           "refId": "A"
         }
