@@ -1,5 +1,11 @@
 # Docker Setup & Testing Guide
 
+> **Dev setup:** For day-to-day local development, use [`README.md`](README.md) and
+> `./start-dev.sh`. This guide predates the Politburo rewrite and still describes a
+> separate Vizburo app, Politburo in Compose on `:8080`, and other legacy layout.
+> Treat the README as authoritative for dev; use this document mainly for Docker
+> build/testing patterns and production-oriented sections below.
+
 ## Overview
 
 Your project uses **Docker Compose** for both development and production deployments with distinct configurations optimized for each environment.

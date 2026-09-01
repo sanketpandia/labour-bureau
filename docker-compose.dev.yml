@@ -1,29 +1,7 @@
-services:
-  # politburo now runs directly via tmux (see start-dev.sh)
-  # politburo:
-  #   build:
-  #     context: ../politburo
-  #     dockerfile: Dockerfile.dev
-  #     target: dev
-  #   working_dir: /app      # <--- root, not /app/cmd/server
-  #   container_name: politburo
-  #   volumes:
-  #     - ../politburo:/app
-  #     - politburo_air_tmp:/app/.air_tmp
-  #   ports:
-  #     - "8080:8080"
-  #   env_file:
-  #     - ../politburo/.env
-  #   command: ["sh","-c","sleep 10 && air -c air.toml"]
-  #   #command: ["air", "-c", "air.toml", "-d"]
-  #   stdin_open: true
-  #   labels:
-  #     service: "politburo"
-  #     env: "dev"
-  #   depends_on:
-  #     - db
-  #     - redis
+# Backing services for local dev. Politburo and comrade-bot run on the host
+# via labour-bureau/start-dev.sh for live reload (Air / ts-node-dev).
 
+services:
   db:
     image: postgres:15
     restart: always
@@ -33,7 +11,7 @@ services:
       POSTGRES_PASSWORD: iepass
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
-      - ../politburo/internal/db/migrations:/migrations:ro
+      - ../politburo/migrations:/migrations:ro
     ports:
       - "5432:5432"
 
@@ -46,7 +24,7 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - redis-data:/data
-  
+
   pgadmin:
     image: dpage/pgadmin4
     restart: always
@@ -63,42 +41,6 @@ services:
     restart: always
     ports:
       - "8081:80"
-
-  comrade-bot:
-    build:
-      context: ../comrade-bot
-      dockerfile: Dockerfile.dev
-    container_name: comrade-bot
-    working_dir: /app
-    network_mode: "host"
-    volumes:
-      - ../comrade-bot:/app
-      # Keep node_modules inside the container so native deps (e.g. canvas → libjpeg) match container libs
-      - comrade_bot_node_modules:/app/node_modules
-    command: ["sh", "-c", "npm install && exec ts-node-dev --respawn --transpile-only src/index.ts"]
-    stdin_open: true
-    env_file:
-      - ../comrade-bot/.env
-    environment:
-      APP_ENV: dev
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      METRICS_ENABLED: ${METRICS_ENABLED:-true}
-      METRICS_HOST: ${METRICS_HOST:-0.0.0.0}
-      METRICS_PORT: ${METRICS_PORT:-9091}
-    labels:
-      service: "comrade-bot"
-      env: "dev"
-
-
-  vizburo:
-    build:
-      context: ../politburo
-      dockerfile: Dockerfile.vizburo.dev
-    container_name: vizburo
-    working_dir: /app
-    volumes:
-      - ../politburo:/app
-    stdin_open: true
 
   prometheus:
     image: prom/prometheus:latest
@@ -128,15 +70,15 @@ services:
     image: grafana/promtail:latest
     container_name: promtail
     restart: always
-    # userns_mode: keep-id runs the container as the host user (eklavya) so the
+    # userns_mode: keep-id runs the container as the host user so the
     # systemd-journal group membership carries through and grants read access to
-    # /var/log/journal. Requires: sudo usermod -aG systemd-journal eklavya + re-login.
+    # /var/log/journal. Requires: sudo usermod -aG systemd-journal <user> + re-login.
     userns_mode: "keep-id"
     volumes:
       - ./promtail-config.yml:/etc/promtail/config.yml:ro
       - /var/log/journal:/var/log/journal:ro
       - /var/log:/var/log:ro
-      # Mount host /tmp so Promtail can tail /tmp/politburo.log written by the host air process
+      # Host Politburo (Air) tees logs to /tmp/politburo.log
       - /tmp:/host-tmp:ro
     ports:
       - "9080:9080"
@@ -165,9 +107,7 @@ services:
 
 volumes:
   pgdata-dev:
-  politburo_air_tmp:
   redis-data:
   prometheus-storage:
   loki-storage:
   grafana-storage:
-  comrade_bot_node_modules:

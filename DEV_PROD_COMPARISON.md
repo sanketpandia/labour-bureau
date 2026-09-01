@@ -1,5 +1,10 @@
 # Development vs Production Configuration Analysis
 
+> **Dev setup:** Day-to-day local development is documented in [`README.md`](README.md).
+> Dev sections below describe the pre-rewrite layout (separate Vizburo, Politburo
+> `:8080` in Compose, Tailwind frontend container). Production comparison material
+> may still be useful but has not been fully reconciled with the rewrite.
+
 ## Executive Summary
 
 ✅ **Production setup is now properly secured with the following improvements:**
